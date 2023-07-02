@@ -39,7 +39,7 @@
 .pmode:
     ; we are now in protected mode!
     [bits 32]
-
+    
     ; 6 - setup segment registers
     mov ax, 0x10
     mov ds, ax
@@ -128,7 +128,7 @@ x86_Disk_GetDriveParams:
     ; sectors
     xor ch, ch          ; sectors - lower 5 bits in cl
     and cl, 3Fh
-
+    
     LinearToSegOffset [bp + 20], es, esi, si
     mov [es:si], cx
 
@@ -178,7 +178,7 @@ x86_Disk_Reset:
     int 13h
 
     mov eax, 1
-    sbb eax, 0           ; 1 on success, 0 on fail
+    sbb eax, 0           ; 1 on success, 0 on fail   
 
     push eax
 
@@ -211,7 +211,7 @@ x86_Disk_Read:
     mov ch, [bp + 12]    ; ch - cylinder (lower 8 bits)
     mov cl, [bp + 13]    ; cl - cylinder to bits 6-7
     shl cl, 6
-
+    
     mov al, [bp + 16]    ; cl - sector to bits 0-5
     and al, 3Fh
     or cl, al
@@ -229,10 +229,81 @@ x86_Disk_Read:
 
     ; set return value
     mov eax, 1
-    sbb eax, 0           ; 1 on success, 0 on fail
+    sbb eax, 0           ; 1 on success, 0 on fail   
 
     ; restore regs
     pop es
+    pop ebx
+
+    push eax
+
+    x86_EnterProtectedMode
+
+    pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
+    ret
+
+
+;
+; int ASMCALL x86_E820GetNextBlock(E820MemoryBlock* block, uint32_t* continuationId);
+;
+E820Signature   equ 0x534D4150
+
+global x86_E820GetNextBlock
+x86_E820GetNextBlock:
+
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp          ; initialize new call frame
+
+    x86_EnterRealMode
+
+    ; save modified regs
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+    push ds
+    push es
+
+    ; setup params
+    LinearToSegOffset [bp + 8], es, edi, di     ; es:di pointer to structure
+    
+    LinearToSegOffset [bp + 12], ds, esi, si    ; ebx - pointer to continuationId
+    mov ebx, ds:[si]
+
+    mov eax, 0xE820                             ; eax - function
+    mov edx, E820Signature                      ; edx - signature
+    mov ecx, 24                                 ; ecx - size of structure
+
+    ; call interrupt
+    int 0x15
+
+    ; test results
+    cmp eax, E820Signature
+    jne .Error
+
+    .IfSuccedeed:
+        mov eax, ecx            ; return size
+        mov ds:[si], ebx        ; fill continuation parameter
+        jmp .EndIf
+
+    .Error:
+        mov eax, -1
+
+    .EndIf:
+
+    ; restore regs
+    pop es
+    pop ds
+    pop edi
+    pop esi
+    pop edx
+    pop ecx
     pop ebx
 
     push eax

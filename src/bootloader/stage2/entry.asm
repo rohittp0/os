@@ -4,6 +4,7 @@ section .entry
 
 extern __bss_start
 extern __end
+extern _init
 
 extern start
 global entry
@@ -13,6 +14,8 @@ entry:
 
     ; save boot drive
     mov [g_BootDrive], dl
+    mov [g_BootPartitionOff], si
+    mov [g_BootPartitionSeg], di
 
     ; setup stack
     mov ax, ds
@@ -35,12 +38,12 @@ entry:
 .pmode:
     ; we are now in protected mode!
     [bits 32]
-
+    
     ; 6 - setup segment registers
     mov ax, 0x10
     mov ds, ax
     mov ss, ax
-
+   
     ; clear bss (uninitialized data)
     mov edi, __bss_start
     mov ecx, __end
@@ -49,7 +52,15 @@ entry:
     cld
     rep stosb
 
+    ; call global constructors
+    call _init
+
     ; expect boot drive in dl, send it as argument to cstart function
+    mov dx, [g_BootPartitionSeg]
+    shl edx, 16
+    mov dx, [g_BootPartitionOff]
+    push edx
+
     xor edx, edx
     mov dl, [g_BootDrive]
     push edx
@@ -79,7 +90,7 @@ EnableA20:
     call A20WaitInput
     mov al, KbdControllerWriteCtrlOutputPort
     out KbdControllerCommandPort, al
-
+    
     call A20WaitInput
     pop eax
     or al, 2                                    ; bit 2 = A20 bit
@@ -167,3 +178,5 @@ g_GDTDesc:  dw g_GDTDesc - g_GDT - 1    ; limit = size of GDT
             dd g_GDT                    ; address of GDT
 
 g_BootDrive: db 0
+g_BootPartitionSeg: dw 0
+g_BootPartitionOff: dw 0

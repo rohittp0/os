@@ -1,2 +1,9 @@
-.idea
 build/
+toolchain/
+*.err
+bx_enh_dbg.ini
+.vscode/*.log
+.sconsign.dblite
+__pycache__/
+.idea/
+venv/

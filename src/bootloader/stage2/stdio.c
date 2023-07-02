@@ -76,13 +76,14 @@ void scrollback(int lines)
 
 void putc(char c)
 {
+    x86_outb(0xE9, c);
     switch (c)
     {
         case '\n':
             g_ScreenX = 0;
             g_ScreenY++;
             break;
-
+    
         case '\t':
             for (int i = 0; i < 4 - (g_ScreenX % 4); i++)
                 putc(' ');
@@ -126,7 +127,7 @@ void printf_unsigned(unsigned long long number, int radix)
     int pos = 0;
 
     // convert number to ASCII
-    do
+    do 
     {
         unsigned long long rem = number % radix;
         number /= radix;
@@ -179,9 +180,9 @@ void printf(const char* fmt, ...)
                 switch (*fmt)
                 {
                     case '%':   state = PRINTF_STATE_LENGTH;
-                        break;
+                                break;
                     default:    putc(*fmt);
-                        break;
+                                break;
                 }
                 break;
 
@@ -189,11 +190,11 @@ void printf(const char* fmt, ...)
                 switch (*fmt)
                 {
                     case 'h':   length = PRINTF_LENGTH_SHORT;
-                        state = PRINTF_STATE_LENGTH_SHORT;
-                        break;
+                                state = PRINTF_STATE_LENGTH_SHORT;
+                                break;
                     case 'l':   length = PRINTF_LENGTH_LONG;
-                        state = PRINTF_STATE_LENGTH_LONG;
-                        break;
+                                state = PRINTF_STATE_LENGTH_LONG;
+                                break;
                     default:    goto PRINTF_STATE_SPEC_;
                 }
                 break;
@@ -221,31 +222,31 @@ void printf(const char* fmt, ...)
                 switch (*fmt)
                 {
                     case 'c':   putc((char)va_arg(args, int));
-                        break;
+                                break;
 
-                    case 's':
-                        puts(va_arg(args, const char*));
-                        break;
+                    case 's':   
+                                puts(va_arg(args, const char*));
+                                break;
 
                     case '%':   putc('%');
-                        break;
+                                break;
 
                     case 'd':
                     case 'i':   radix = 10; sign = true; number = true;
-                        break;
+                                break;
 
                     case 'u':   radix = 10; sign = false; number = true;
-                        break;
+                                break;
 
                     case 'X':
                     case 'x':
                     case 'p':   radix = 16; sign = false; number = true;
-                        break;
+                                break;
 
                     case 'o':   radix = 8; sign = false; number = true;
-                        break;
+                                break;
 
-                        // ignore invalid spec
+                    // ignore invalid spec
                     default:    break;
                 }
 
@@ -255,32 +256,32 @@ void printf(const char* fmt, ...)
                     {
                         switch (length)
                         {
-                            case PRINTF_LENGTH_SHORT_SHORT:
-                            case PRINTF_LENGTH_SHORT:
-                            case PRINTF_LENGTH_DEFAULT:     printf_signed(va_arg(args, int), radix);
-                                break;
+                        case PRINTF_LENGTH_SHORT_SHORT:
+                        case PRINTF_LENGTH_SHORT:
+                        case PRINTF_LENGTH_DEFAULT:     printf_signed(va_arg(args, int), radix);
+                                                        break;
 
-                            case PRINTF_LENGTH_LONG:        printf_signed(va_arg(args, long), radix);
-                                break;
+                        case PRINTF_LENGTH_LONG:        printf_signed(va_arg(args, long), radix);
+                                                        break;
 
-                            case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long long), radix);
-                                break;
+                        case PRINTF_LENGTH_LONG_LONG:   printf_signed(va_arg(args, long long), radix);
+                                                        break;
                         }
                     }
                     else
                     {
                         switch (length)
                         {
-                            case PRINTF_LENGTH_SHORT_SHORT:
-                            case PRINTF_LENGTH_SHORT:
-                            case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, unsigned int), radix);
-                                break;
+                        case PRINTF_LENGTH_SHORT_SHORT:
+                        case PRINTF_LENGTH_SHORT:
+                        case PRINTF_LENGTH_DEFAULT:     printf_unsigned(va_arg(args, unsigned int), radix);
+                                                        break;
+                                                        
+                        case PRINTF_LENGTH_LONG:        printf_unsigned(va_arg(args, unsigned  long), radix);
+                                                        break;
 
-                            case PRINTF_LENGTH_LONG:        printf_unsigned(va_arg(args, unsigned  long), radix);
-                                break;
-
-                            case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, unsigned  long long), radix);
-                                break;
+                        case PRINTF_LENGTH_LONG_LONG:   printf_unsigned(va_arg(args, unsigned  long long), radix);
+                                                        break;
                         }
                     }
                 }
@@ -290,6 +291,7 @@ void printf(const char* fmt, ...)
                 length = PRINTF_LENGTH_DEFAULT;
                 radix = 10;
                 sign = false;
+                number = false;
                 break;
         }
 
@@ -302,7 +304,7 @@ void printf(const char* fmt, ...)
 void print_buffer(const char* msg, const void* buffer, uint32_t count)
 {
     const uint8_t* u8Buffer = (const uint8_t*)buffer;
-
+    
     puts(msg);
     for (uint16_t i = 0; i < count; i++)
     {
