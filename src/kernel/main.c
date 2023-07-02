@@ -5,12 +5,21 @@
 #include <arch/i686/irq.h>
 #include <debug.h>
 #include <boot/bootparams.h>
+#include "timer.h"
+#include "network.h"
 
 extern void _init();
 
+uint64_t g_ticks = 0;
+
 void timer(Registers* regs)
 {
-    printf(".");
+    g_ticks++;
+}
+
+uint64_t getMillis()
+{
+    return g_ticks;
 }
 
 void start(BootParams* bootParams)
@@ -30,9 +39,17 @@ void start(BootParams* bootParams)
             bootParams->Memory.Regions[i].Type);
     }
 
-    //i686_IRQ_RegisterHandler(0, timer);
+    i686_IRQ_RegisterHandler(0, timer);
 
-    //crash_me();
+    puts("\r\n\r\n\r\n");
+    puts("       +=====================+\r\n");
+    puts("       ||                   ||\r\n");
+    puts("       ||    Not Windows    ||\r\n");
+    puts("       ||                   ||\r\n");
+    puts("       +=====================+\r\n");
+    puts("\r\n\r\n\r\n");
+
+    main();
 
 end:
     for (;;);
