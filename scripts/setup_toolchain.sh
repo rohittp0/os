@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 BINUTILS_VERSION="${BINUTILS_VERSION:-2.37}"
 GCC_VERSION="${GCC_VERSION:-11.2.0}"
@@ -51,7 +51,7 @@ if [ "$OPERATION" = "build" ]; then
         --with-sysroot					\
         --disable-nls					\
         --disable-werror
-    make -j8 
+    make -j8
     make install
     popd
 

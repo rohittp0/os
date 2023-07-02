@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 QEMU_ARGS='-debugcon stdio -m 32'
 

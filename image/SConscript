@@ -67,7 +67,7 @@ def install_stage1(target: str, stage1: str, stage2_offset, stage2_size, offset=
     map_file = Path(stage1).with_suffix('.map')
     if not map_file.exists():
         raise ValueError("Can't find " + map_file)
-    
+
     entry_offset = find_symbol_in_map_file(map_file, '__entry_start')
     if entry_offset is None:
         raise ValueError("Can't find __entry_start symbol in map file " + str(map_file))
@@ -105,7 +105,7 @@ def build_floppy(image, stage1, stage2, kernel, files, env):
     size_sectors = 2880
     stage2_size = os.stat(stage2).st_size
     stage2_sectors = (stage2_size + SECTOR_SIZE - 1) // SECTOR_SIZE
-    
+
     generate_image_file(image, size_sectors)
 
     print(f"> formatting file using fat12...")
@@ -149,7 +149,11 @@ def create_partition_table(target: str, align_start: int):
 
 
 def mount_fs(image: str, mount_dir: str):
-    sh.guestmount(mount_dir, add=image, mount='/dev/sda1')
+    sh.guestfish(_in=f'''--rw
+-a {image}
+-m /dev/sda1
+copy-out / {mount_dir}
+''')
 
 def unmount_fs(mount_dir: str):
     time.sleep(3)
@@ -178,7 +182,7 @@ def build_disk(image, stage1, stage2, kernel, files, env):
     # install stage1
     print(f"> installing stage1...")
     install_stage1(image, stage1, offset=partition_offset, stage2_offset=1, stage2_size=stage2_sectors)
- 
+
     # install stage2
     print(f"> installing stage2...")
     install_stage2(image, stage2, offset=1, limit=partition_offset)
@@ -249,7 +253,7 @@ output_fmt = 'img'
 output = f'image.{output_fmt}'
 
 image = env.Command(output, inputs,
-                    action=Action(build_image, 'Creating disk image...'), 
+                    action=Action(build_image, 'Creating disk image...'),
                     BASEDIR=root.srcnode().path)
 env.Depends(image, inputs)
 

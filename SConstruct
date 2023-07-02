@@ -12,8 +12,8 @@ VARS.AddVariables(
                  default="debug",
                  allowed_values=("debug", "release")),
 
-    EnumVariable("arch", 
-                 help="Target architecture", 
+    EnumVariable("arch",
+                 help="Target architecture",
                  default="i686",
                  allowed_values=("i686")),
 
@@ -25,15 +25,15 @@ VARS.AddVariables(
     EnumVariable("imageFS",
                  help="Type of image",
                  default="fat32",
-                 allowed_values=("fat12", "fat16", "fat32", "ext2"))    
+                 allowed_values=("fat12", "fat16", "fat32", "ext2"))
     )
-VARS.Add("imageSize", 
+VARS.Add("imageSize",
          help="The size of the image, will be rounded up to the nearest multiple of 512. " +
               "You can use suffixes (k/m/g). " +
               "For floppies, the size is fixed to 1.44MB.",
          default="250m",
          converter=ParseSize)
-VARS.Add("toolchain", 
+VARS.Add("toolchain",
          help="Path to toolchain directory.",
          default="toolchain")
 
@@ -149,8 +149,10 @@ SConscript('image/SConscript', variant_dir=variantDir, duplicate=0)
 Import('image')
 Default(image)
 
+print(HOST_ENVIRONMENT['imageType'], image[0].path)
+
 # Phony targets
-PhonyTargets(HOST_ENVIRONMENT, 
+PhonyTargets(HOST_ENVIRONMENT,
              run=['./scripts/run.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
              debug=['./scripts/debug.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
              bochs=['./scripts/bochs.sh', HOST_ENVIRONMENT['imageType'], image[0].path],
