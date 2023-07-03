@@ -33,9 +33,8 @@ void start(BootParams* bootParams)
     puts("       ||    Not Windows    ||\r\n");
     puts("       ||                   ||\r\n");
     puts("       +=====================+\r\n");
-    puts("\r\n\r\n\r\n");
+    puts("\r\n\r\n");
 
-    while (!getMillis());
     log_debug("Main", "Kernel exit @ Tick %d", getMillis());
 
     main();

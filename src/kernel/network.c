@@ -8,7 +8,6 @@ typedef struct {
     uint8_t dest[6];
     uint8_t src[6];
     uint16_t type;
-    uint8_t payload[];
 } EthernetFrame;
 
 typedef struct {
@@ -24,7 +23,6 @@ typedef struct {
     uint16_t headerChecksum;
     uint8_t source[4];
     uint8_t destination[4];
-    uint8_t options[];
 } IPFrame;
 
 typedef struct {
@@ -32,7 +30,6 @@ typedef struct {
     uint16_t destinationPort;
     uint16_t length;
     uint16_t checksum;
-    uint8_t payload[];
 } UDPFrame;
 
 uint8_t charToByte(char number[8]) {
@@ -40,38 +37,135 @@ uint8_t charToByte(char number[8]) {
     for (int i = 0; i < 8; i++) {
         result += (number[i] - '0') << (7 - i);
     }
+
+    return result;
 }
 
-EthernetFrame parseEthernetFrame(char *rawPacket) {
+EthernetFrame parseEthernetFrame(char *payload) {
     EthernetFrame ethFrame;
     for (int i = 0; i < 6; i++) {
-        ethFrame.dest[i] = charToByte(rawPacket + i * 8);
-        ethFrame.src[i] = charToByte(rawPacket + (i + 6) * 8);
+        ethFrame.dest[i] = charToByte(payload + i * 8);
+        ethFrame.src[i] = charToByte(payload + (i + 6) * 8);
     }
 
-    ethFrame.type = charToByte(rawPacket + 12 * 8) << 8 | charToByte(rawPacket + 13 * 8);
+    ethFrame.type = charToByte(payload + 12 * 8) << 8 | charToByte(payload + 13 * 8);
     return ethFrame;
 }
 
+IPFrame parseIPFrame(char *payload) {
+    IPFrame ipFrame;
+    ipFrame.version = charToByte(payload) >> 4;
+    ipFrame.headerLength = charToByte(payload) & 0x0F;
+    ipFrame.typeOfService = charToByte(payload + 1 * 8);
+    ipFrame.totalLength = charToByte(payload + 2 * 8) << 8 | charToByte(payload + 3 * 8);
+    ipFrame.identification = charToByte(payload + 4 * 8) << 8 | charToByte(payload + 5 * 8);
+    ipFrame.flags = charToByte(payload + 6 * 8) >> 5;
+    ipFrame.fragmentOffset = charToByte(payload + 6 * 8) & 0x1F << 8 | charToByte(payload + 7 * 8);
+    ipFrame.timeToLive = charToByte(payload + 8 * 8);
+    ipFrame.protocol = charToByte(payload + 9 * 8);
+    ipFrame.headerChecksum = charToByte(payload + 10 * 8) << 8 | charToByte(payload + 11 * 8);
+    for (int i = 0; i < 4; i++) {
+        ipFrame.source[i] = charToByte(payload + (12 + i) * 8);
+        ipFrame.destination[i] = charToByte(payload + (16 + i) * 8);
+    }
+
+    return ipFrame;
+}
+
+UDPFrame parseUDPFrame(char *payload) {
+    UDPFrame udpFrame;
+    udpFrame.sourcePort = charToByte(payload) << 8 | charToByte(payload + 1 * 8);
+    udpFrame.destinationPort = charToByte(payload + 2 * 8) << 8 | charToByte(payload + 3 * 8);
+    udpFrame.length = charToByte(payload + 4 * 8) << 8 | charToByte(payload + 5 * 8);
+    udpFrame.checksum = charToByte(payload + 6 * 8) << 8 | charToByte(payload + 7 * 8);
+
+    return udpFrame;
+}
+
+void printEthernetFrame(EthernetFrame *frame) {
+    printf("\nEthernet Frame:\n");
+    printf("Destination: ");
+    for (int i = 0; i < 6; i++) {
+        printf("%d", frame->dest[i]);
+        if (i < 5) printf(":");
+    }
+    printf("\tSource: ");
+    for (int i = 0; i < 6; i++) {
+        printf("%d", frame->src[i]);
+        if (i < 5) printf(":");
+    }
+    printf("\tType: %d\n", frame->type);
+}
+
+void printIPFrame(IPFrame *frame) {
+    printf("\nIP Frame:\n");
+    printf("Version: %u\t", frame->version);
+    printf("Header Length: %u\t", frame->headerLength);
+    printf("Type of Service: %u\t", frame->typeOfService);
+    printf("Total Length: %u\t", frame->totalLength);
+    printf("Identification: %u\t", frame->identification);
+    printf("Flags: %u\t", frame->flags);
+    printf("Fragment Offset: %u\t", frame->fragmentOffset);
+    printf("Time to Live: %u\t", frame->timeToLive);
+    printf("Protocol: %u\t", frame->protocol);
+    printf("Header Checksum: %d\t", frame->headerChecksum);
+
+    printf("Source IP: ");
+    for (int i = 0; i < 4; i++) {
+        printf("%u", frame->source[i]);
+        if (i < 3) printf(".");
+    }
+
+    printf("\tDestination IP: ");
+    for (int i = 0; i < 4; i++) {
+        printf("%u", frame->destination[i]);
+        if (i < 3) printf(".");
+    }
+
+    printf("\n");
+}
+
+void printUDPFrame(UDPFrame *frame) {
+    printf("\nUDP Frame:\n");
+    printf("Source Port: %u\t", frame->sourcePort);
+    printf("Destination Port: %u\t", frame->destinationPort);
+    printf("Length: %u\t", frame->length);
+    printf("Checksum: %d\n", frame->checksum);
+}
+
+void printPayload(char *payload, int length) {
+    printf("\nPayload: ");
+    for (int i = 0; i < length; i += 8) {
+        putc(charToByte(payload + i));
+    }
+    putc('\n');
+}
 
 int main() {
-    uint64_t start = getMillis();
-    printf("Starting network...\nCurrent time: %d\n\n", start);
+    uint64_t start = getNanos();
+    printf("Current time: %d\n", start);
 
     EthernetFrame ethFrame = parseEthernetFrame(rawPacket);
     IPFrame ipFrame;
     UDPFrame udpFrame;
 
-    // Print ethernet frame
-    printf("Ethernet frame:\n");
-    printf(
-            "Dest: %x:%x:%x:%x:%x:%x\n",
-            ethFrame.dest[0], ethFrame.dest[1],
-            ethFrame.dest[2], ethFrame.dest[3],
-            ethFrame.dest[4], ethFrame.dest[5]
-    );
+    printEthernetFrame(&ethFrame);
 
-    printf("Time elapsed: %d\n", getMillis() - start);
+    if (ethFrame.type == 0x0800) {
+        ipFrame = parseIPFrame(rawPacket + 14 * 8);
+        printIPFrame(&ipFrame);
+
+        if (ipFrame.protocol == 17) {
+            udpFrame = parseUDPFrame(rawPacket + 14 * 8 + ipFrame.headerLength * 8);
+            printUDPFrame(&udpFrame);
+
+            printPayload(rawPacket + 42 * 8, (ipFrame.totalLength - ipFrame.headerLength*4 - 8) * 8);
+        } else
+            printf("Not a UDP packet\n");
+    } else
+        printf("Not an IP packet\n");
+
+    printf("\n\nTime elapsed: %d ns", getNanos() - start);
 
     return 0;
 }

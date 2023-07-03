@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include <hal/vfs.h>
+#include "hal/vfs.h"
 
 void fputc(char c, fd_t file)
 {
@@ -40,7 +40,7 @@ void fprintf_unsigned(fd_t file, unsigned long long number, int radix)
     int pos = 0;
 
     // convert number to ASCII
-    do 
+    do
     {
         unsigned long long rem = number % radix;
         number /= radix;
@@ -122,7 +122,7 @@ void vfprintf(fd_t file, const char* fmt, va_list args)
                     case 'c':   fputc((char)va_arg(args, int), file);
                                 break;
 
-                    case 's':   
+                    case 's':
                                 fputs(va_arg(args, const char*), file);
                                 break;
 
@@ -174,7 +174,7 @@ void vfprintf(fd_t file, const char* fmt, va_list args)
                         case PRINTF_LENGTH_SHORT:
                         case PRINTF_LENGTH_DEFAULT:     fprintf_unsigned(file, va_arg(args, unsigned int), radix);
                                                         break;
-                                                        
+
                         case PRINTF_LENGTH_LONG:        fprintf_unsigned(file, va_arg(args, unsigned  long), radix);
                                                         break;
 
@@ -208,7 +208,7 @@ void fprintf(fd_t file, const char* fmt, ...)
 void fprint_buffer(fd_t file, const char* msg, const void* buffer, uint32_t count)
 {
     const uint8_t* u8Buffer = (const uint8_t*)buffer;
-    
+
     fputs(msg, file);
     for (uint16_t i = 0; i < count; i++)
     {

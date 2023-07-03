@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdarg.h>
-#include <hal/vfs.h>
+#include "hal/vfs.h"
 
 void fputc(char c, fd_t file);
 void fputs(const char* str, fd_t file);

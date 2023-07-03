@@ -53,3 +53,7 @@ uint64_t getNanos() {
 uint64_t getMillis() {
     return getNanos() / 1000000;
 }
+
+uint64_t getMicros() {
+    return getNanos() / 1000;
+}
