@@ -1,4 +1,5 @@
 #include "stdio.h"
+#include <stdbool.h>
 #include "timer.h"
 #include "network.h"
 
@@ -142,30 +143,34 @@ void printPayload(char *payload, int length) {
 }
 
 int main() {
-    uint64_t start = getNanos();
+    uint64_t start = getMicros();
     printf("Current time: %d\n", start);
+
+    bool isUDP = false;
 
     EthernetFrame ethFrame = parseEthernetFrame(rawPacket);
     IPFrame ipFrame;
     UDPFrame udpFrame;
 
-    printEthernetFrame(&ethFrame);
-
     if (ethFrame.type == 0x0800) {
         ipFrame = parseIPFrame(rawPacket + 14 * 8);
-        printIPFrame(&ipFrame);
 
         if (ipFrame.protocol == 17) {
             udpFrame = parseUDPFrame(rawPacket + 14 * 8 + ipFrame.headerLength * 8);
-            printUDPFrame(&udpFrame);
-
-            printPayload(rawPacket + 42 * 8, (ipFrame.totalLength - ipFrame.headerLength*4 - 8) * 8);
+            isUDP = true;
         } else
             printf("Not a UDP packet\n");
     } else
         printf("Not an IP packet\n");
 
-    printf("\n\nTime elapsed: %d ns", getNanos() - start);
+    printf("Time to parse: %d Micro Seconds\n", getMicros() - start);
+
+    if (isUDP) {
+        printEthernetFrame(&ethFrame);
+        printIPFrame(&ipFrame);
+        printUDPFrame(&udpFrame);
+        printPayload(rawPacket + 42 * 8, (ipFrame.totalLength - ipFrame.headerLength * 4 - 8) * 8);
+    }
 
     return 0;
 }

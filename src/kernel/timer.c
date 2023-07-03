@@ -42,18 +42,22 @@ void calibrate_cpu_frequency() {
     cpu_frequency = (end - start) / 100;
 }
 
-uint64_t getNanos() {
+uint64_t getTime() {
     if(!cpu_frequency) {
         calibrate_cpu_frequency();
     }
 
-    return rdtsc() * 1000000000 / cpu_frequency;
+    return rdtsc();
+}
+
+uint64_t getNanos() {
+    return getTime() * 1000000000 / cpu_frequency;
 }
 
 uint64_t getMillis() {
-    return getNanos() / 1000000;
+    return getTime() * 1000 / cpu_frequency;
 }
 
 uint64_t getMicros() {
-    return getNanos() / 1000;
+    return getTime() * 1000000 / cpu_frequency;
 }
