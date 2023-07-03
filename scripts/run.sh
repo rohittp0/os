@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-QEMU_ARGS='-debugcon stdio -m 32'
+QEMU_ARGS='-debugcon stdio -m 320 -full-screen'
 
 if [ "$#" -le 1 ]; then
     echo "Usage: ./run.sh <image_type> <image>"
