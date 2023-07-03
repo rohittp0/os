@@ -27,9 +27,6 @@ void start(BootParams* bootParams)
             bootParams->Memory.Regions[i].Type);
     }
 
-    pit_set_frequency(1);
-    i686_IRQ_RegisterHandler(0, timer);
-
     puts("\r\n\r\n\r\n");
     puts("       +=====================+\r\n");
     puts("       ||                   ||\r\n");
