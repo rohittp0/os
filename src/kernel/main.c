@@ -10,18 +10,6 @@
 
 extern void _init();
 
-uint64_t g_ticks = 0;
-
-void timer(Registers* regs)
-{
-    g_ticks++;
-}
-
-uint64_t getMillis()
-{
-    return g_ticks;
-}
-
 void start(BootParams* bootParams)
 {
     // call global constructors
@@ -39,6 +27,7 @@ void start(BootParams* bootParams)
             bootParams->Memory.Regions[i].Type);
     }
 
+    pit_set_frequency(1);
     i686_IRQ_RegisterHandler(0, timer);
 
     puts("\r\n\r\n\r\n");
@@ -49,7 +38,11 @@ void start(BootParams* bootParams)
     puts("       +=====================+\r\n");
     puts("\r\n\r\n\r\n");
 
+    while (!getMillis());
+    log_debug("Main", "Kernel exit @ Tick %d", getMillis());
+
     main();
+    log_debug("Main", "OS exit @ Tick %d", getMillis());
 
 end:
     for (;;);

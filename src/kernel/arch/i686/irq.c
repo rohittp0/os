@@ -16,7 +16,7 @@ static const PICDriver* g_Driver = NULL;
 void i686_IRQ_Handler(Registers* regs)
 {
     int irq = regs->interrupt - PIC_REMAP_OFFSET;
-    
+
     if (g_IRQHandlers[irq] != NULL)
     {
         // handle IRQ
@@ -57,12 +57,10 @@ void i686_IRQ_Initialize()
 
     // enable interrupts
     i686_EnableInterrupts();
-
-    // g_Driver->Unmask(0);
-    // g_Driver->Unmask(1);
 }
 
 void i686_IRQ_RegisterHandler(int irq, IRQHandler handler)
 {
     g_IRQHandlers[irq] = handler;
+    g_Driver->Unmask(irq);
 }
