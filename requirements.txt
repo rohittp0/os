@@ -1,2 +1,3 @@
 sh
-pyparted
+pyparted==3.11.7
+scons
