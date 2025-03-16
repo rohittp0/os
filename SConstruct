@@ -56,6 +56,8 @@ HOST_ENVIRONMENT = Environment(variables=VARS,
     STRIP = 'strip',
 )
 
+HOST_ENVIRONMENT['imageType'] = 'floppy' # For some reason, I can't get disk to work
+
 HOST_ENVIRONMENT.Append(
     PROJECTDIR = HOST_ENVIRONMENT.Dir('.').srcnode()
 )

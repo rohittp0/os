@@ -5,6 +5,7 @@ from decimal import Decimal
 from io import SEEK_CUR, SEEK_SET
 from pathlib import Path
 from shutil import copy2
+import shutil
 import parted
 import sh
 
@@ -149,11 +150,7 @@ def create_partition_table(target: str, align_start: int):
 
 
 def mount_fs(image: str, mount_dir: str):
-    sh.guestfish(_in=f'''--rw
--a {image}
--m /dev/sda1
-copy-out / {mount_dir}
-''')
+    sh.guestfish(_in=f'--rw -a {image} -m /dev/sda1 copy-out / {mount_dir}')
 
 def unmount_fs(mount_dir: str):
     time.sleep(3)
@@ -223,7 +220,7 @@ def build_disk(image, stage1, stage2, kernel, files, env):
             unmount_fs(tempdir)
         except:
             pass
-        os.rmdir(tempdir)
+        shutil.rmtree(tempdir)
 
 
 def build_image(target, source, env):

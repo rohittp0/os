@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 QEMU_ARGS='-debugcon stdio -m 320 -full-screen'
 
