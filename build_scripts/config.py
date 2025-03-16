@@ -3,4 +3,4 @@
 imageType = 'disk'
 imageFS = 'fat32'
 imageSize = '250m'
-toolchain='/mnt/d/Data/C/os/toolchain'
+toolchain='/opt/toolchain'
