@@ -1,0 +1,6 @@
+services:
+  main:
+    container_name: main
+    build: .
+    volumes:
+      - .:/app
